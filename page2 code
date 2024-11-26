@@ -1,0 +1,86 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Data.SqlClient;
+
+namespace ogrencitakip
+{
+    public partial class Form2 : Form
+    {
+        private void Form2_Load(object sender, EventArgs e)
+        {
+            // TODO: This line of code loads data into the 'ogrencitakipDataSet1.ogrenciler' table. You can move, or remove it, as needed.
+            this.ogrencilerTableAdapter1.Fill(this.ogrencitakipDataSet1.ogrenciler);
+        }
+
+        string baglantiStr;
+        SqlConnection baglanti;
+        SqlCommand komut;
+        SqlDataAdapter adaptor;
+        public Form2()
+        {
+            InitializeComponent();
+        }
+
+        private void SqlCalistir(string sql,string islem)
+        {
+            VeriTabanıBaglan();
+
+            komut = new SqlCommand(sql, baglanti);
+            try
+            {
+                komut.ExecuteNonQuery();
+                MessageBox.Show(islem + "işlem başarıyla gerçekleşti");
+            }
+            catch(SqlException hata)
+            {
+                MessageBox.Show(hata.Message.ToString());
+            }
+        }
+
+        public void VeriTabanıBaglan()
+        {
+            try
+            {
+                baglantiStr = @"Data Source=.;Initial Catalog=ogrencitakip;Trusted_Connection=True;";
+                baglanti = new SqlConnection(baglantiStr);
+                if (baglanti.State == ConnectionState.Open)
+                baglanti.Close();
+                baglanti.Open();
+            }
+            catch
+            {
+                MessageBox.Show("Veritabanı İle Bağlantı Kurulamadı");
+            }
+        }
+
+        public void VerileriGetir()
+        {
+            VeriTabanıBaglan();
+            DataTable dt = new DataTable();
+            adaptor = new SqlDataAdapter("SELECT * FROM ogrenciler", baglanti);
+            adaptor.Fill(dt);
+            dataGridView1.DataSource = dt;
+            baglanti.Close();
+        }
+        private void btnekle_Click(object sender, EventArgs e)
+        {
+            string no, ad, soyad, tel;
+            no = txtno.Text;
+            ad = txtad.Text;
+            soyad = txtsoyad.Text;
+            tel = txttel.Text;
+
+            string sql = "INSERT INTO ogrenciler(ogrno, ograd, ogrsoyad,ogrtel)" +
+                  " VALUES('" + no + "','" + ad + "','" + soyad + "','" + tel + "')";
+            SqlCalistir(sql,"Ekleme");
+            VerileriGetir();
+        }
+    }
+}
